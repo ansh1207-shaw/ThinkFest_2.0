@@ -16,6 +16,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "axios": "^1.11.0",
     "chart.js": "^4.5.0",
+    "dayjs": "^1.11.13",
     "framer-motion": "^12.23.7",
     "gsap": "^3.13.0",
     "leaflet": "^1.9.4",

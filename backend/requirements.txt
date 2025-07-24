@@ -1,5 +1,8 @@
 flask
 scikit-learn
 pandas
+flask-cors
+requests
 firebase-admin
 python-dotenv
+gunicornpyth

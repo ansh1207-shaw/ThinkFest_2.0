@@ -8,12 +8,22 @@ import {
   PointElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler // ✅ Added Filler plugin
 } from 'chart.js';
 import axios from 'axios';
 import { gsap } from 'gsap';
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend);
+ChartJS.register(
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler // ✅ Registered for fill support
+);
 
 function SensorChart({ location }) {
   const [dataList, setDataList] = useState([]);
@@ -30,37 +40,38 @@ function SensorChart({ location }) {
       const moistureArray = res.data?.hourly?.soil_moisture_0_1cm;
       const timeArray = res.data?.hourly?.time;
 
-      if (moistureArray?.length && timeArray?.length) {
-        const index = moistureArray.length - 1;
-        const raw = moistureArray[index];
-        const moisture = parseFloat((raw * 100).toFixed(2));
+      if (!moistureArray?.length || !timeArray?.length) return;
 
-        const timeLabel = new Date().toLocaleTimeString('en-IN', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true
-        });
+      const latestIndex = moistureArray.length - 1;
+      const moistureRaw = moistureArray[latestIndex];
+      const moisture = parseFloat((moistureRaw * 100).toFixed(2));
 
-        setDataList((prev) => [...prev.slice(-11), { time: timeLabel, moisture }]);
-      }
-    } catch (error) {
-      console.error('❌ Soil moisture fetch failed:', error);
+      const now = new Date();
+      const timeLabel = now.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+
+      setDataList((prev) => [...prev.slice(-11), { time: timeLabel, moisture }]);
+    } catch (err) {
+      console.error('❌ Soil moisture fetch failed:', err);
     }
   }, [location]);
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 5000);
-    return () => clearInterval(interval);
+    const intervalId = setInterval(fetchData, 5000);
+    return () => clearInterval(intervalId);
   }, [fetchData]);
 
   useEffect(() => {
-    if (chartRef.current && dataList.length) {
+    if (chartRef.current && dataList.length > 0) {
       gsap.fromTo(
         chartRef.current,
         { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }
+        { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }
       );
     }
   }, [dataList]);
@@ -73,7 +84,7 @@ function SensorChart({ location }) {
         data: dataList.map((d) => d.moisture),
         borderColor: '#10b981',
         backgroundColor: 'rgba(16, 185, 129, 0.2)',
-        fill: true,
+        fill: true, // ✅ Works now with Filler
         tension: 0.4,
         pointRadius: 3,
         pointBackgroundColor: '#10b981'

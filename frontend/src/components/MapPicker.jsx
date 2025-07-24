@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 
@@ -12,27 +11,25 @@ function MapPicker({ onSubmit }) {
   useEffect(() => {
     gsap.fromTo(
       boxRef.current,
-      { y: 50, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1.2, ease: 'power3.out' }
+      { y: 30, opacity: 0 },
+      { y: 0, opacity: 1, duration: 1, ease: 'power2.out' }
     );
   }, []);
 
   const handleSubmit = () => {
-    const lat = latDir === 'S' ? -Math.abs(parseFloat(latValue)) : Math.abs(parseFloat(latValue));
-    const lon = lonDir === 'W' ? -Math.abs(parseFloat(lonValue)) : Math.abs(parseFloat(lonValue));
+    const latRaw = parseFloat(latValue);
+    const lonRaw = parseFloat(lonValue);
 
-    if (!isNaN(lat) && !isNaN(lon)) {
-      const subtleLat = lat + Math.random() * 0.000001;
-      onSubmit({ lat: subtleLat, lon });
-      setTimeout(() => onSubmit({ lat, lon }), 10);
-
-      setLatValue('');
-      setLonValue('');
-      setLatDir('N');
-      setLonDir('E');
-    } else {
+    if (isNaN(latRaw) || isNaN(lonRaw)) {
       alert('❗Please enter valid numeric coordinates.');
+      return;
     }
+
+    const lat = latDir === 'S' ? -Math.abs(latRaw) : Math.abs(latRaw);
+    const lon = lonDir === 'W' ? -Math.abs(lonRaw) : Math.abs(lonRaw);
+
+    // 👉 No display, no log, just internal pass
+    typeof onSubmit === 'function' && onSubmit({ lat, lon });
   };
 
   const handleUseLocation = () => {
@@ -43,11 +40,16 @@ function MapPicker({ onSubmit }) {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        const subtleLat = lat + Math.random() * 0.000001;
-        onSubmit({ lat: subtleLat, lon });
-        setTimeout(() => onSubmit({ lat, lon }), 10);
+        const rawLat = position.coords.latitude;
+        const rawLon = position.coords.longitude;
+
+        setLatValue(Math.abs(rawLat).toFixed(5));
+        setLonValue(Math.abs(rawLon).toFixed(5));
+        setLatDir(rawLat >= 0 ? 'N' : 'S');
+        setLonDir(rawLon >= 0 ? 'E' : 'W');
+
+        // 👉 Still no output, just silent handoff
+        typeof onSubmit === 'function' && onSubmit({ lat: rawLat, lon: rawLon });
       },
       () => {
         alert('❌ Unable to retrieve your location.');

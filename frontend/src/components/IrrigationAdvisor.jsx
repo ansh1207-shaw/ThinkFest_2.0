@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-
-function IrrigationAdvisor({ cropType = 'wheat', areaSize = 1000, lat = 23.1, lon = 88.5 }) {
+function IrrigationAdvisor({ areaSize = 1000, lat = 23.1, lon = 88.5 }) {
   const [environment, setEnvironment] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchEnvironment = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/location-data?lat=${lat}&lon=${lon}`);
+        const res = await axios.get(
+          `http://localhost:5000/api/location-data?lat=${lat}&lon=${lon}`
+        );
         setEnvironment(res.data);
       } catch (err) {
-        console.error("❌ Error fetching data:", err);
-        setError("Failed to load irrigation advisory.");
+        console.error('❌ Error fetching data:', err);
+        setError('Failed to load irrigation advisory.');
       }
     };
 
@@ -23,17 +24,14 @@ function IrrigationAdvisor({ cropType = 'wheat', areaSize = 1000, lat = 23.1, lo
   const get = (val, unit = '', fallback = '—') =>
     typeof val === 'number' ? `${val} ${unit}` : fallback;
 
-  const cropRates = {
-    wheat: 5,
-    rice: 7,
-    corn: 6,
-    vegetables: 4,
-  };
-
   const calculateWaterNeed = () => {
-    const baseNeed = cropRates[cropType?.toLowerCase()] || 5;
+    const baseNeed = 5; // Fixed base water need per m² (in liters)
     const moistureAdj = 1 - (environment?.soil_moisture ?? 0.25);
-    const evap = 1 + (environment.temp_max / 35) + (environment.wind_speed / 5) - (environment.humidity / 100);
+    const evap =
+      1 +
+      (environment.temp_max / 35) +
+      (environment.wind_speed / 5) -
+      (environment.humidity / 100);
     const total = baseNeed * areaSize * moistureAdj * evap;
     return total > 0 ? total.toFixed(1) : '—';
   };
@@ -54,9 +52,7 @@ function IrrigationAdvisor({ cropType = 'wheat', areaSize = 1000, lat = 23.1, lo
   };
 
   const suggestMethod = () => {
-    if (cropType === 'rice' || areaSize > 1000) return 'Sprinkler';
-    if (cropType === 'vegetables') return 'Drip';
-    return 'Drip or Sprinkler';
+    return areaSize > 1000 ? 'Sprinkler' : 'Drip or Sprinkler';
   };
 
   if (error) {
@@ -72,19 +68,13 @@ function IrrigationAdvisor({ cropType = 'wheat', areaSize = 1000, lat = 23.1, lo
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="max-w-3xl mx-auto mt-10 p-6 bg-white/90 backdrop-blur-md rounded-xl shadow-xl border border-green-200"
-    >
+    <div className="max-w-3xl mx-auto mt-10 p-6 bg-white/90 backdrop-blur-md rounded-xl shadow-xl border border-green-200">
       <h3 className="text-2xl font-bold text-green-700 mb-6 flex items-center">
         💧 <span className="ml-2">AI-Based Irrigation Advisory</span>
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-gray-800 text-[15.5px]">
         {[
-          ['🌾 Crop Type', cropType || 'N/A'],
           ['📐 Field Size', `${areaSize} m²`],
           ['🌿 Soil Moisture', get(environment.soil_moisture, 'm³/m³')],
           ['🌡️ Max Temperature', get(environment.temp_max, '°C')],
@@ -92,29 +82,21 @@ function IrrigationAdvisor({ cropType = 'wheat', areaSize = 1000, lat = 23.1, lo
           ['💨 Wind Speed', get(environment.wind_speed, 'm/s')],
           ['🚰 Estimated Water Needed', `${calculateWaterNeed()} liters`],
           ['⏰ Suggested Time', findBestTime()],
-          ['🧪 Delivery Method', suggestMethod()],
+          ['🧪 Delivery Method', suggestMethod()]
         ].map(([label, value], idx) => (
-          <motion.div
+          <div
             key={idx}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 * idx }}
             className="bg-green-50/40 px-4 py-2 rounded border border-green-100 shadow-sm"
           >
             <strong>{label}:</strong> {value}
-          </motion.div>
+          </div>
         ))}
       </div>
 
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="mt-6 text-green-700 font-medium"
-      >
-        ✅ This advisory helps reduce water waste and improve crop yield through precision irrigation.
-      </motion.p>
-    </motion.div>
+      <p className="mt-6 text-green-700 font-medium">
+        ✅ This advisory helps reduce water waste and improve yield through precision irrigation.
+      </p>
+    </div>
   );
 }
 

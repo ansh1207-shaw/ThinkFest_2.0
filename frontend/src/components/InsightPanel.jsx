@@ -7,7 +7,12 @@ function InsightPanel({ location }) {
   const [error, setError] = useState(false);
   const panelRef = useRef(null);
 
+  // ✅ Helper function to validate coordinates
+  const isValid = (val) => typeof val === 'number' && !isNaN(val);
+
   useEffect(() => {
+    if (!location || !isValid(location.lat) || !isValid(location.lon)) return;
+
     const fetchWeather = async () => {
       try {
         const res = await axios.get(
@@ -40,6 +45,11 @@ function InsightPanel({ location }) {
 
   const get = (val, unit = '', fallback = '—') =>
     typeof val === 'number' ? `${val} ${unit}` : fallback;
+
+  // ✅ Don't render anything if location is invalid
+  if (!location || !isValid(location.lat) || !isValid(location.lon)) {
+    return null;
+  }
 
   if (error) {
     return (

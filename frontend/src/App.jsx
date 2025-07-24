@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import MapPicker from './components/MapPicker';
-import InsightPanel from './components/InsightPanel';  // Includes advanced weather stats
-import SensorChart from './components/SensorChart';     // Real-time soil moisture chart
+import InsightPanel from './components/InsightPanel';
+import SensorChart from './components/SensorChart';
 import WeatherTimeline from './components/WeatherTimeline';
 import IrrigationAdvisor from './components/IrrigationAdvisor';
-import ThankYou from './components/ThankYou'; // Thank you message after setup
-import SetupGuide from './components/SetupGuide'; // System setup and usage guide
-import SmartIrrigationOverview from './components/SmartIrrigationOverview'; // Overview of smart irrigation system
+import ThankYou from './components/ThankYou';
+import SetupGuide from './components/SetupGuide';
+import SmartIrrigationOverview from './components/SmartIrrigationOverview';
 
 function App() {
   const [location, setLocation] = useState({ lat: null, lon: null });
@@ -16,22 +16,21 @@ function App() {
   const isLocationValid = isValid(location.lat) && isValid(location.lon);
 
   return (
-    
     <div className="bg-gray-50 min-h-screen text-gray-900">
       <Navbar />
-
       <MapPicker onSubmit={setLocation} />
 
       {isLocationValid && (
         <>
-          
-          <IrrigationAdvisor location={location} />     
-           
-          <InsightPanel location={location} />   
-          <SensorChart location={location} />           
+          <IrrigationAdvisor
+            areaSize={500}             // m²
+            environment={location}
+            location={location}        // For weather fetch if needed
+          />
+          <InsightPanel location={location} />
+          <SensorChart location={location} />
+          <WeatherTimeline location={location} />
           <SetupGuide />
-
-          <WeatherTimeline location={location} />     
           <SmartIrrigationOverview />
           <ThankYou />
         </>
@@ -41,4 +40,3 @@ function App() {
 }
 
 export default App;
-
